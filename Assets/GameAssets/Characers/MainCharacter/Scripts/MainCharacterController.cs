@@ -25,6 +25,7 @@ public class MainCharacterController : MonoBehaviour {
     Rigidbody m_Rigidbody;
     Animator m_Animator;
     bool m_IsGrounded;
+    bool m_DoubleJump;
     float m_OrigGroundCheckDistance;
     const float k_Half = 0.5f;
     float m_TurnAmount;
@@ -40,6 +41,7 @@ public class MainCharacterController : MonoBehaviour {
         m_Capsule = GetComponent<CapsuleCollider>();
         m_CapsuleHeight = m_Capsule.height;
         m_CapsuleCenter = m_Capsule.center;
+        m_DoubleJump = true;
     }
 	
 	// Update is called once per frame
@@ -57,7 +59,7 @@ public class MainCharacterController : MonoBehaviour {
         m_TurnAmount = Mathf.Atan2(move.x, move.z);
         m_ForwardAmount = move.z;
 
-        Debug.Log(move.magnitude);
+        Debug.Log(m_IsGrounded);
 
         ApplyExtraTurnRotation();
 
@@ -68,13 +70,20 @@ public class MainCharacterController : MonoBehaviour {
 
 
         // check whether conditions are right to allow a jump:
-        if (jump)
+        if (m_IsGrounded && jump)
         {
             // jump!
             m_Rigidbody.velocity = new Vector3(m_Rigidbody.velocity.x, m_JumpPower, m_Rigidbody.velocity.z);
             m_IsGrounded = false;
             m_GroundCheckDistance = 0.1f;
         }
+        else
+            if (jump && m_DoubleJump && !m_IsGrounded)
+            {
+                m_Rigidbody.velocity = new Vector3(m_Rigidbody.velocity.x, m_JumpPower, m_Rigidbody.velocity.z);
+                m_DoubleJump = false;
+                m_GroundCheckDistance = 0.1f;
+            }
 
         HandleAirborneMovement();
         //// convert the world relative moveInput vector into a local-relative
@@ -119,6 +128,7 @@ public class MainCharacterController : MonoBehaviour {
         {
             m_GroundNormal = hitInfo.normal;
             m_IsGrounded = true;
+            m_DoubleJump = true;
             //m_Animator.applyRootMotion = true;
         }
         else
@@ -141,7 +151,6 @@ public class MainCharacterController : MonoBehaviour {
         // apply extra gravity from multiplier:
         Vector3 extraGravityForce = (Physics.gravity * m_GravityMultiplier) - Physics.gravity;
         m_Rigidbody.AddForce(extraGravityForce);
-
-        m_GroundCheckDistance = m_Rigidbody.velocity.y < 0 ? m_OrigGroundCheckDistance : 0.01f;
+        
     }
 }

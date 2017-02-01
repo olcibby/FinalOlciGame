@@ -34,6 +34,10 @@ public class MainCharacterUserController : MonoBehaviour {
         {
             m_Jump = CrossPlatformInputManager.GetButtonDown("Jump");
         }
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            m_Character.FirePush();
+        }
     }
 
     private void FixedUpdate() {

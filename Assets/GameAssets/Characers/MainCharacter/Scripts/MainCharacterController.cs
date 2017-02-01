@@ -21,6 +21,8 @@ public class MainCharacterController : MonoBehaviour {
     float m_AnimSpeedMultiplier = 1f;
     [SerializeField]
     float m_GroundCheckDistance = 0.1f;
+    [SerializeField]
+    GameObject m_AirPushPrefab;
 
     Rigidbody m_Rigidbody;
     Animator m_Animator;
@@ -58,9 +60,7 @@ public class MainCharacterController : MonoBehaviour {
         move = Vector3.ProjectOnPlane(move, m_GroundNormal);
         m_TurnAmount = Mathf.Atan2(move.x, move.z);
         m_ForwardAmount = move.z;
-
-        Debug.Log(m_IsGrounded);
-
+        
         ApplyExtraTurnRotation();
 
         if (move.magnitude > 0f)
@@ -152,5 +152,10 @@ public class MainCharacterController : MonoBehaviour {
         Vector3 extraGravityForce = (Physics.gravity * m_GravityMultiplier) - Physics.gravity;
         m_Rigidbody.AddForce(extraGravityForce);
         
+    }
+
+    public void FirePush()
+    {
+        Instantiate(m_AirPushPrefab, transform.position + transform.forward * 1.5f + Vector3.up * 1.2f, Quaternion.LookRotation(transform.forward, Vector3.up));
     }
 }

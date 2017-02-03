@@ -1,6 +1,6 @@
 fileFormatVersion: 2
-guid: ea2e32920d80ce740a932c33fe5c2c8e
-timeCreated: 1486081631
+guid: 5034d10390743954cab1cd394c7f02b7
+timeCreated: 1486128243
 licenseType: Free
 ModelImporter:
   serializedVersion: 19
@@ -137,7 +137,7 @@ ModelImporter:
     400126: mixamorig:Spine1
     400128: mixamorig:Spine2
     400130: //RootNode
-    7400000: idle_1
+    7400000: fallLoop
     9500000: //RootNode
   materials:
     importMaterials: 1
@@ -161,10 +161,10 @@ ModelImporter:
     extraExposedTransformPaths: []
     clipAnimations:
     - serializedVersion: 16
-      name: idle_1
+      name: fallLoop
       takeName: mixamo.com
-      firstFrame: 0
-      lastFrame: 59
+      firstFrame: 18
+      lastFrame: 18.1
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -172,7 +172,7 @@ ModelImporter:
       loop: 0
       hasAdditiveReferencePose: 0
       loopTime: 1
-      loopBlend: 0
+      loopBlend: 1
       loopBlendOrientation: 0
       loopBlendPositionY: 0
       loopBlendPositionXZ: 0

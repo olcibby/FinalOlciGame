@@ -46,6 +46,8 @@ public class MainCharacterController : MonoBehaviour {
         m_CapsuleCenter = m_Capsule.center;
         m_DoubleJump = true;
         bottom = transform.FindChild("bottom");
+
+        m_Animator = GetComponent<Animator>();
     }
 	
 	// Update is called once per frame
@@ -66,9 +68,15 @@ public class MainCharacterController : MonoBehaviour {
         ApplyExtraTurnRotation();
 
         if (move.magnitude > 0f)
-        m_Rigidbody.velocity = new Vector3(transform.forward.x * m_MoveSpeedMultiplier* move.magnitude, m_Rigidbody.velocity.y, transform.forward.z * m_MoveSpeedMultiplier* move.magnitude);
+        {
+            m_Rigidbody.velocity = new Vector3(transform.forward.x * m_MoveSpeedMultiplier * move.magnitude, m_Rigidbody.velocity.y, transform.forward.z * m_MoveSpeedMultiplier * move.magnitude);
+            m_Animator.SetBool("Running", true);
+        }
         else
+        {
             m_Rigidbody.velocity = new Vector3(0, m_Rigidbody.velocity.y, 0);
+            m_Animator.SetBool("Running", false);
+        }
 
 
         // check whether conditions are right to allow a jump:
@@ -139,6 +147,12 @@ public class MainCharacterController : MonoBehaviour {
             m_GroundNormal = Vector3.up;
             //m_Animator.applyRootMotion = false;
         }
+
+        if (!m_IsGrounded)
+        {
+            HandleAirAnimation();
+        }
+        m_Animator.SetBool("Grounded", m_IsGrounded);
     }
 
     void ApplyExtraTurnRotation()
@@ -159,5 +173,19 @@ public class MainCharacterController : MonoBehaviour {
     public void FirePush()
     {
         Instantiate(m_AirPushPrefab, transform.position + transform.forward * 1.5f + Vector3.up * 1.2f, Quaternion.LookRotation(transform.forward, Vector3.up));
+    }
+
+    public void HandleAirAnimation()
+    {
+        if (m_Rigidbody.velocity.y > 0)
+        {
+            m_Animator.SetBool("Ascending", true);
+            m_Animator.SetBool("Descending", false);
+        }
+        else
+        {
+            m_Animator.SetBool("Ascending", false);
+            m_Animator.SetBool("Descending", true);
+        }
     }
 }

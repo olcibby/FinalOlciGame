@@ -1,6 +1,6 @@
 fileFormatVersion: 2
-guid: ea2e32920d80ce740a932c33fe5c2c8e
-timeCreated: 1486081631
+guid: f8d73a58be6fd5b478785e001c615dbf
+timeCreated: 1486128460
 licenseType: Free
 ModelImporter:
   serializedVersion: 19
@@ -137,7 +137,7 @@ ModelImporter:
     400126: mixamorig:Spine1
     400128: mixamorig:Spine2
     400130: //RootNode
-    7400000: idle_1
+    7400000: groundTouch
     9500000: //RootNode
   materials:
     importMaterials: 1
@@ -161,17 +161,17 @@ ModelImporter:
     extraExposedTransformPaths: []
     clipAnimations:
     - serializedVersion: 16
-      name: idle_1
+      name: groundTouch
       takeName: mixamo.com
-      firstFrame: 0
-      lastFrame: 59
+      firstFrame: 18
+      lastFrame: 30
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
+      loopTime: 0
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0

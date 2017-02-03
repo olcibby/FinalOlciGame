@@ -36,6 +36,7 @@ public class MainCharacterController : MonoBehaviour {
     float m_CapsuleHeight;
     Vector3 m_CapsuleCenter;
     CapsuleCollider m_Capsule;
+    Transform bottom;
 
     // Use this for initialization
     void Start () {
@@ -44,6 +45,7 @@ public class MainCharacterController : MonoBehaviour {
         m_CapsuleHeight = m_Capsule.height;
         m_CapsuleCenter = m_Capsule.center;
         m_DoubleJump = true;
+        bottom = transform.FindChild("bottom");
     }
 	
 	// Update is called once per frame
@@ -120,11 +122,11 @@ public class MainCharacterController : MonoBehaviour {
         RaycastHit hitInfo;
 #if UNITY_EDITOR
         // helper to visualise the ground check ray in the scene view
-        Debug.DrawLine(transform.position + (Vector3.up * 0.1f), transform.position + (Vector3.up * 0.1f) + (Vector3.down * m_GroundCheckDistance));
+        Debug.DrawLine(bottom.position + (Vector3.up * 0.05f), bottom.position + (Vector3.up * 0.05f) + (Vector3.down * m_GroundCheckDistance));
 #endif
         // 0.1f is a small offset to start the ray from inside the character
         // it is also good to note that the transform position in the sample assets is at the base of the character
-        if (Physics.Raycast(transform.position + (Vector3.up * 0.1f), Vector3.down, out hitInfo, m_GroundCheckDistance))
+        if (Physics.Raycast(bottom.position + (Vector3.up * 0.05f), Vector3.down, out hitInfo, m_GroundCheckDistance))
         {
             m_GroundNormal = hitInfo.normal;
             m_IsGrounded = true;

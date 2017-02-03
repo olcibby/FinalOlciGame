@@ -24,12 +24,18 @@ public class AirPushController : MonoBehaviour {
 	void Update () {
 		if (Vector3.Distance(m_StartingPosition, transform.position) >= m_MaxDistance)
         {
-            Destroy(this.gameObject);
+            StartCoroutine(Hit());
         }
 	}
 
     void OnCollisionEnter(Collision collision)
     {
         Destroy(this.gameObject);
+    }
+
+    IEnumerator Hit()
+    {
+       yield return new WaitForSeconds(0.1f);
+       Destroy(this.gameObject);
     }
 }

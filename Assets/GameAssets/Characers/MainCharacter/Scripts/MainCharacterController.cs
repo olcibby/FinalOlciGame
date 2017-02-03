@@ -37,6 +37,7 @@ public class MainCharacterController : MonoBehaviour {
     Vector3 m_CapsuleCenter;
     CapsuleCollider m_Capsule;
     Transform bottom;
+    bool m_airPushFired;
 
     // Use this for initialization
     void Start () {
@@ -46,8 +47,8 @@ public class MainCharacterController : MonoBehaviour {
         m_CapsuleCenter = m_Capsule.center;
         m_DoubleJump = true;
         bottom = transform.FindChild("bottom");
-
         m_Animator = GetComponent<Animator>();
+        m_airPushFired = false;
     }
 	
 	// Update is called once per frame
@@ -57,45 +58,54 @@ public class MainCharacterController : MonoBehaviour {
 
     public void Move(Vector3 move, bool jump)
     {
-
-        if (move.magnitude > 1f) move.Normalize();
-        move = transform.InverseTransformDirection(move);
-        CheckGroundStatus();
-        move = Vector3.ProjectOnPlane(move, m_GroundNormal);
-        m_TurnAmount = Mathf.Atan2(move.x, move.z);
-        m_ForwardAmount = move.z;
-        
-        ApplyExtraTurnRotation();
-
-        if (move.magnitude > 0f)
+        if (!m_airPushFired)
         {
-            m_Rigidbody.velocity = new Vector3(transform.forward.x * m_MoveSpeedMultiplier * move.magnitude, m_Rigidbody.velocity.y, transform.forward.z * m_MoveSpeedMultiplier * move.magnitude);
-            m_Animator.SetBool("Running", true);
-        }
-        else
-        {
-            m_Rigidbody.velocity = new Vector3(0, m_Rigidbody.velocity.y, 0);
-            m_Animator.SetBool("Running", false);
-        }
+            if (move.magnitude > 1f) move.Normalize();
+            move = transform.InverseTransformDirection(move);
+            CheckGroundStatus();
+            move = Vector3.ProjectOnPlane(move, m_GroundNormal);
+            m_TurnAmount = Mathf.Atan2(move.x, move.z);
+            m_ForwardAmount = move.z;
 
+            ApplyExtraTurnRotation();
 
-        // check whether conditions are right to allow a jump:
-        if (m_IsGrounded && jump)
-        {
-            // jump!
-            m_Rigidbody.velocity = new Vector3(m_Rigidbody.velocity.x, m_JumpPower, m_Rigidbody.velocity.z);
-            m_IsGrounded = false;
-            m_GroundCheckDistance = 0.1f;
-        }
-        else
-            if (jump && m_DoubleJump && !m_IsGrounded)
+            if (move.magnitude > 0f)
+            {
+                m_Rigidbody.velocity = new Vector3(transform.forward.x * m_MoveSpeedMultiplier * move.magnitude, m_Rigidbody.velocity.y, transform.forward.z * m_MoveSpeedMultiplier * move.magnitude);
+                m_Animator.SetBool("Running", true);
+            }
+            else
+            {
+                m_Rigidbody.velocity = new Vector3(0, m_Rigidbody.velocity.y, 0);
+                m_Animator.SetBool("Running", false);
+            }
+
+            // check whether conditions are right to allow a jump:
+            if (m_IsGrounded && jump)
+            {
+                // jump!
+                m_Rigidbody.velocity = new Vector3(m_Rigidbody.velocity.x, m_JumpPower, m_Rigidbody.velocity.z);
+                m_IsGrounded = false;
+                m_GroundCheckDistance = 0.1f;
+            }
+            else
+                if (jump && m_DoubleJump && !m_IsGrounded)
             {
                 m_Rigidbody.velocity = new Vector3(m_Rigidbody.velocity.x, m_JumpPower, m_Rigidbody.velocity.z);
                 m_DoubleJump = false;
                 m_GroundCheckDistance = 0.1f;
             }
 
-        HandleAirborneMovement();
+            HandleAirborneMovement();
+        }
+        else
+        {
+            m_Rigidbody.velocity = new Vector3(0, 0, 0);
+            if (move.magnitude > 0f)
+                m_Animator.SetBool("Running", true);
+            else
+                m_Animator.SetBool("Running", false);
+        }
         //// convert the world relative moveInput vector into a local-relative
         //// turn amount and forward amount required to head in the desired
         //// direction.
@@ -170,9 +180,24 @@ public class MainCharacterController : MonoBehaviour {
         
     }
 
-    public void FirePush()
+    public void AirPush()
     {
         Instantiate(m_AirPushPrefab, transform.position + transform.forward * 1.5f + Vector3.up * 1.2f, Quaternion.LookRotation(transform.forward, Vector3.up));
+    }
+
+    public void AirPushEnd()
+    {
+        m_Animator.SetBool("AirPush", false);
+        m_airPushFired = false;
+    }
+
+    public void FirePush()
+    {
+        if (m_IsGrounded)
+        {
+            m_airPushFired = true;
+            m_Animator.SetBool("AirPush", true);
+        }
     }
 
     public void HandleAirAnimation()
@@ -188,4 +213,6 @@ public class MainCharacterController : MonoBehaviour {
             m_Animator.SetBool("Descending", true);
         }
     }
+
+
 }

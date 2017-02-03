@@ -11,6 +11,7 @@ public class AirPushController : MonoBehaviour {
 
     Rigidbody m_Rigidbody;
     Vector3 m_StartingPosition;
+    AirPushParticleController m_particleController;
 
     // Use this for initialization
     void Start () {
@@ -18,6 +19,7 @@ public class AirPushController : MonoBehaviour {
         m_Rigidbody = GetComponent<Rigidbody>();
         m_Rigidbody.velocity = new Vector3(m_Speed * transform.forward.x, m_Speed * transform.forward.y , m_Speed * transform.forward.z );
         m_StartingPosition = transform.position;
+        m_particleController = gameObject.GetComponentInChildren<AirPushParticleController>();
     }
 	
 	// Update is called once per frame
@@ -30,12 +32,14 @@ public class AirPushController : MonoBehaviour {
 
     void OnCollisionEnter(Collision collision)
     {
+        m_particleController.Detach();
         Destroy(this.gameObject);
     }
 
     IEnumerator Hit()
     {
-       yield return new WaitForSeconds(0.1f);
-       Destroy(this.gameObject);
+       yield return new WaitForSeconds(0.05f);
+        m_particleController.Detach();
+        Destroy(this.gameObject);
     }
 }

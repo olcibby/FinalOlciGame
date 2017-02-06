@@ -40,10 +40,10 @@ public class BushLeafController : MonoBehaviour {
             targetRotation = initialRotation;
         }
 
-		if (entered == true)
+        if (entered == true)
         {
 
-                float minDistance = strength*5000;
+            float minDistance = strength * 5000;
             foreach (Transform item in otherTransforms)
             {
                 if (Vector3.Distance(item.position, initialPosition) < minDistance)
@@ -52,19 +52,43 @@ public class BushLeafController : MonoBehaviour {
                     minDistance = Vector3.Distance(item.position, initialPosition);
                 }
             }
-            float averageX = closestTransform.position.x;
-            float averageZ = closestTransform.position.z;
+            float closestX = closestTransform.position.x;
+            float closestZ = closestTransform.position.z;
 
-            averageCenter = new Vector3(averageX, 0, averageZ);
-            if (entered == true && Vector2.Distance(new Vector2(averageCenter.x, averageCenter.z), new Vector2(initialPosition.x, initialPosition.z)) <= strength)
+            float distanceFromPlant = Vector2.Distance(new Vector2(closestX, closestZ), new Vector2(initialPosition.x, initialPosition.z));
+
+            if (distanceFromPlant <= strength)
             {
-                xSway = strength - (averageCenter.x - initialPosition.x);
-                zSway = strength - (averageCenter.z - initialPosition.z);
-                xSway = xSway >= 0 && xSway < strength ? 90 * (xSway / strength - 1) : xSway >= strength && xSway < strength * 2 ? -90 * (1 - xSway / strength) : 0f;
-                xSway = -xSway;
-                zSway = zSway >= 0 && zSway < strength ? 90 * (zSway / strength - 1) : zSway >= strength && zSway < strength * 2 ? -90 * (1 - zSway / strength) : 0f;
+                float xDistance = closestX - initialPosition.x;
+                float zDistance = closestZ - initialPosition.z;
+                float distanceAdded = xDistance + zDistance;
 
-                targetRotation = Quaternion.Euler(initialRotation.eulerAngles.x + zSway, 0, initialRotation.eulerAngles.z + xSway);
+                float positiveXDistance = xDistance > 0 ? xDistance : -xDistance;
+                float positiveZDistance = zDistance > 0 ? zDistance : -zDistance;
+
+                //float xSign = xDistance != 0 ? Mathf.Abs(xDistance) / xDistance : 1;
+                //float zSign = zDistance != 0 ? Mathf.Abs(zDistance) / zDistance : 1;
+
+                float xRatio;
+                float zRatio;
+                if (!(Mathf.Abs(xDistance) < 0.01f && Mathf.Abs(zDistance) < 0.01f))
+                {
+                    xRatio = positiveXDistance >= positiveZDistance ? 1 : positiveXDistance / positiveZDistance;
+                    zRatio = positiveZDistance >= positiveXDistance ? 1 : positiveZDistance / positiveXDistance;
+                }
+                else
+                {
+                    xRatio = zRatio = 1;
+                }
+
+                xRatio = xDistance > 0 ? xRatio : -xRatio;
+                zRatio = zDistance > 0 ? zRatio : -zRatio;
+
+                float sway = 90 * (1 - distanceFromPlant / strength);
+                xSway = sway * xRatio;
+                zSway = sway * zRatio;
+
+                targetRotation = Quaternion.Euler(initialRotation.eulerAngles.x - zSway, 0, initialRotation.eulerAngles.z + xSway);
             }
             else
             {

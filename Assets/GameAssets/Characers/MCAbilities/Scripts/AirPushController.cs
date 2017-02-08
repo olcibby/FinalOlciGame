@@ -36,6 +36,6 @@ public class AirPushController : MonoBehaviour {
     IEnumerator Hit()
     {
        yield return new WaitForSeconds(0.05f);
-        Destroy(this.gameObject);
+       Destroy(this.gameObject);
     }
 }

@@ -36,7 +36,7 @@ public class MainCharacterUserController : MonoBehaviour {
         }
         if (Input.GetKeyDown(KeyCode.E))
         {
-            m_Character.FirePush();
+            m_Character.AirPushAction();
         }
     }
 

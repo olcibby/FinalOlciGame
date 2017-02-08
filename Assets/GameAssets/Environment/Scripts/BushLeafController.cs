@@ -6,7 +6,7 @@ using UnityEngine;
 public class BushLeafController : MonoBehaviour {
 
     
-    public float strength = 1f;
+    public float distanceTreshold = 1f;
     public float turningRate = 1f;
 
     private Quaternion initialRotation;
@@ -42,8 +42,8 @@ public class BushLeafController : MonoBehaviour {
 
         if (entered == true)
         {
-
-            float minDistance = strength * 5000;
+            //NOTE:set threshold from object
+            float minDistance = distanceTreshold * 5000;
             foreach (Transform item in otherTransforms)
             {
                 if (Vector3.Distance(item.position, initialPosition) < minDistance)
@@ -57,21 +57,17 @@ public class BushLeafController : MonoBehaviour {
 
             float distanceFromPlant = Vector2.Distance(new Vector2(closestX, closestZ), new Vector2(initialPosition.x, initialPosition.z));
 
-            if (distanceFromPlant <= strength)
+            if (distanceFromPlant <= distanceTreshold)
             {
                 float xDistance = closestX - initialPosition.x;
                 float zDistance = closestZ - initialPosition.z;
-                float distanceAdded = xDistance + zDistance;
 
-                float positiveXDistance = xDistance > 0 ? xDistance : -xDistance;
-                float positiveZDistance = zDistance > 0 ? zDistance : -zDistance;
-
-                //float xSign = xDistance != 0 ? Mathf.Abs(xDistance) / xDistance : 1;
-                //float zSign = zDistance != 0 ? Mathf.Abs(zDistance) / zDistance : 1;
+                float positiveXDistance = Mathf.Abs(xDistance);
+                float positiveZDistance = Mathf.Abs(zDistance);
 
                 float xRatio;
                 float zRatio;
-                if (!(Mathf.Abs(xDistance) < 0.01f && Mathf.Abs(zDistance) < 0.01f))
+                if (!(positiveXDistance < 0.01f && positiveZDistance < 0.01f))
                 {
                     xRatio = positiveXDistance >= positiveZDistance ? 1 : positiveXDistance / positiveZDistance;
                     zRatio = positiveZDistance >= positiveXDistance ? 1 : positiveZDistance / positiveXDistance;
@@ -84,7 +80,7 @@ public class BushLeafController : MonoBehaviour {
                 xRatio = xDistance > 0 ? xRatio : -xRatio;
                 zRatio = zDistance > 0 ? zRatio : -zRatio;
 
-                float sway = 90 * (1 - distanceFromPlant / strength);
+                float sway = 90 * (1 - distanceFromPlant / distanceTreshold);
                 xSway = sway * xRatio;
                 zSway = sway * zRatio;
 

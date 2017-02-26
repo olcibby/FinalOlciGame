@@ -9,6 +9,7 @@ public class BushLeafController : MonoBehaviour {
     public float distanceTreshold = 1f;
     public float turningRate = 1f;
 
+
     private Quaternion initialRotation;
     private Vector3 initialPosition;
     private bool entered = false;
@@ -20,7 +21,6 @@ public class BushLeafController : MonoBehaviour {
     private float zSway = 0f;
     private float actualTurningRate;
     private Transform closestTransform;
-
 
 	// Use this for initialization
 	void Start () {

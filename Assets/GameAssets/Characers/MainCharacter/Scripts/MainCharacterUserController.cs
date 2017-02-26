@@ -38,6 +38,14 @@ public class MainCharacterUserController : MonoBehaviour {
         {
             m_Character.AirPushAction();
         }
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            m_Character.ToggleDoubleJumpOn();
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            m_Character.ToggleAirPushMaskOn();
+        }
     }
 
     private void FixedUpdate() {

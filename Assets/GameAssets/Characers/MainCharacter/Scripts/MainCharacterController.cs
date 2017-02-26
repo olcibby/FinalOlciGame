@@ -22,7 +22,14 @@ public class MainCharacterController : MonoBehaviour {
     [SerializeField]
     float m_GroundCheckDistance = 0.1f;
     [SerializeField]
-    GameObject m_AirPushPrefab;
+    public GameObject m_AirPushPrefab;
+    public GameObject DoubleJumpMask;
+    public GameObject AirPushMask;
+    public float m_timeScale;
+    public GameObject DoubleJumpMaskHand;
+    public GameObject AirPushMaskHand;
+    public GameObject DoubleJumpMaskInventory;
+    public GameObject AirPushMaskInventory;
 
     Rigidbody m_Rigidbody;
     Animator m_Animator;
@@ -36,8 +43,12 @@ public class MainCharacterController : MonoBehaviour {
     float m_CapsuleHeight;
     Vector3 m_CapsuleCenter;
     CapsuleCollider m_Capsule;
-    Transform bottom;
+    GameObject[] groundChecks;
     bool m_airPushFired;
+    private bool m_doubleJumpMaskOn;
+    private bool m_airPushMaskOn;
+    private bool m_swapMasks;
+    private bool m_maskAction;
 
     // Use this for initialization
     void Start () {
@@ -46,19 +57,21 @@ public class MainCharacterController : MonoBehaviour {
         m_CapsuleHeight = m_Capsule.height;
         m_CapsuleCenter = m_Capsule.center;
         m_DoubleJump = true;
-        bottom = transform.FindChild("bottom");
+        groundChecks = GameObject.FindGameObjectsWithTag("GroundCheck");
         m_Animator = GetComponent<Animator>();
         m_airPushFired = false;
+        m_swapMasks = false;
+        m_maskAction = false;
     }
 	
 	// Update is called once per frame
 	void Update () {
-		
-	}
+        Time.timeScale = m_timeScale;
+    }
 
     public void Move(Vector3 move, bool jump)
     {
-        if (!m_airPushFired)
+        if (!m_airPushFired && !m_maskAction)
         {
             if (move.magnitude > 1f) move.Normalize();
             move = transform.InverseTransformDirection(move);
@@ -89,11 +102,12 @@ public class MainCharacterController : MonoBehaviour {
                 m_GroundCheckDistance = 0.1f;
             }
             else
-                if (jump && m_DoubleJump && !m_IsGrounded)
+                if (jump && m_doubleJumpMaskOn && m_DoubleJump && !m_IsGrounded)
             {
                 m_Rigidbody.velocity = new Vector3(m_Rigidbody.velocity.x, m_JumpPower, m_Rigidbody.velocity.z);
                 m_DoubleJump = false;
                 m_GroundCheckDistance = 0.1f;
+                m_Animator.SetBool("DoubleJump", true);
             }
 
             HandleAirborneMovement();
@@ -110,32 +124,40 @@ public class MainCharacterController : MonoBehaviour {
 
     void CheckGroundStatus()
     {
-        RaycastHit hitInfo;
+        if (groundChecks.Length != 0)
+        {
+            foreach (GameObject groundCheck in groundChecks)
+            {
+                int layer_mask = LayerMask.GetMask("Ground");
+                RaycastHit hitInfo;
 #if UNITY_EDITOR
-        // helper to visualise the ground check ray in the scene view
-        Debug.DrawLine(bottom.position + (Vector3.up * 0.05f), bottom.position + (Vector3.up * 0.05f) + (Vector3.down * m_GroundCheckDistance));
+                // helper to visualise the ground check ray in the scene view
+                Debug.DrawLine(groundCheck.transform.position + (Vector3.up * 0.05f), groundCheck.transform.position + (Vector3.up * 0.05f) + (Vector3.down * m_GroundCheckDistance));
 #endif
-        // 0.1f is a small offset to start the ray from inside the character
-        // it is also good to note that the transform position in the sample assets is at the base of the character
-        if (Physics.Raycast(bottom.position + (Vector3.up * 0.05f), Vector3.down, out hitInfo, m_GroundCheckDistance))
-        {
-            m_GroundNormal = hitInfo.normal;
-            m_IsGrounded = true;
-            m_DoubleJump = true;
-            //m_Animator.applyRootMotion = true;
+                // 0.1f is a small offset to start the ray from inside the character
+                // it is also good to note that the transform position in the sample assets is at the base of the character
+                if (Physics.Raycast(groundCheck.transform.position + (Vector3.up * 0.05f), Vector3.down, out hitInfo, m_GroundCheckDistance, layer_mask))
+                {
+                    m_GroundNormal = hitInfo.normal;
+                    m_IsGrounded = true;
+                    m_DoubleJump = true;
+                    //transform.rotation = Quaternion.LookRotation(transform.forward, hitInfo.normal);
+                    //m_Animator.applyRootMotion = true;
+                }
+                else
+                {
+                    m_IsGrounded = false;
+                    m_GroundNormal = Vector3.up;
+                    //m_Animator.applyRootMotion = false;
+                }
+            }
         }
-        else
-        {
-            m_IsGrounded = false;
-            m_GroundNormal = Vector3.up;
-            //m_Animator.applyRootMotion = false;
-        }
-
         if (!m_IsGrounded)
-        {
-            HandleAirAnimation();
-        }
+            {
+                HandleAirAnimation();
+            }
         m_Animator.SetBool("Grounded", m_IsGrounded);
+
     }
 
     void ApplyExtraTurnRotation()
@@ -166,14 +188,53 @@ public class MainCharacterController : MonoBehaviour {
 
     public void AirPushAction()
     {
-        if (m_IsGrounded)
+        if (m_IsGrounded && m_airPushMaskOn)
         {
             m_airPushFired = true;
             m_Animator.SetBool("AirPush", true);
         }
     }
 
-    public void HandleAirAnimation()
+    public void ToggleDoubleJumpOn()
+    {
+        if (!m_maskAction && m_IsGrounded)
+        {
+            m_maskAction = true;
+            m_doubleJumpMaskOn = !m_doubleJumpMaskOn;
+            m_airPushMaskOn = false;
+            SetMasks();
+        }
+    }
+
+    public void ToggleAirPushMaskOn()
+    {
+        if (!m_maskAction && m_IsGrounded)
+        {
+            m_maskAction = true;
+            m_doubleJumpMaskOn = false;
+            m_airPushMaskOn = !m_airPushMaskOn;
+            SetMasks();
+        }
+    }
+
+    private void SetMasks()
+    {
+            if (!AirPushMask.activeSelf && !DoubleJumpMask.activeSelf)
+            {
+                m_Animator.SetBool("MaskOn", true);
+            }
+            else
+                if ((AirPushMask.activeSelf && m_doubleJumpMaskOn) || (DoubleJumpMask.activeSelf && m_airPushMaskOn))
+            {
+                m_Animator.SetBool("MaskSwap", true);
+            }
+            else
+            {
+                m_Animator.SetBool("MaskOff", true);
+            }
+    } 
+
+    void HandleAirAnimation()
     {
         if (m_Rigidbody.velocity.y > 0)
         {
@@ -187,5 +248,58 @@ public class MainCharacterController : MonoBehaviour {
         }
     }
 
+    public void PickUpMask()
+    {
+        DoubleJumpMaskHand.SetActive(m_doubleJumpMaskOn);
+        AirPushMaskHand.SetActive(m_airPushMaskOn);
+
+        DoubleJumpMaskInventory.SetActive(!m_doubleJumpMaskOn);
+        AirPushMaskInventory.SetActive(!m_airPushMaskOn);
+    }
+    public void PlaceMaskOn()
+    {
+        DoubleJumpMask.SetActive(m_doubleJumpMaskOn);
+        AirPushMask.SetActive(m_airPushMaskOn);
+
+        DoubleJumpMaskHand.SetActive(false);
+        AirPushMaskHand.SetActive(false);
+    }
+    public void TakeOffMask()
+    {
+        DoubleJumpMaskHand.SetActive(DoubleJumpMask.activeSelf);
+        AirPushMaskHand.SetActive(AirPushMask.activeSelf);
+
+        DoubleJumpMask.SetActive(false);
+        AirPushMask.SetActive(false);
+    }
+    public void SwapMasks()
+    {
+        DoubleJumpMaskInventory.SetActive(!m_doubleJumpMaskOn);
+        AirPushMaskInventory.SetActive(!m_airPushMaskOn);
+
+        DoubleJumpMaskHand.SetActive(m_doubleJumpMaskOn);
+        AirPushMaskHand.SetActive(m_airPushMaskOn);
+    }
+    public void PlaceMask()
+    {
+        DoubleJumpMaskInventory.SetActive(true);
+        AirPushMaskInventory.SetActive(true);
+
+        DoubleJumpMaskHand.SetActive(false);
+        AirPushMaskHand.SetActive(false);
+    }
+
+    public void TriggerDoubleJump()
+    {
+        m_Animator.SetBool("DoubleJump", false);
+    }
+
+    public void MaskActionEnd()
+    {
+        m_maskAction = false;
+        m_Animator.SetBool("MaskOn", false);
+        m_Animator.SetBool("MaskOff", false);
+        m_Animator.SetBool("MaskSwap", false);
+    }
 
 }

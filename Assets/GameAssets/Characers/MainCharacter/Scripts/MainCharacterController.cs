@@ -20,16 +20,26 @@ public class MainCharacterController : MonoBehaviour {
     [SerializeField]
     float m_AnimSpeedMultiplier = 1f;
     [SerializeField]
-    float m_GroundCheckDistance = 0.1f;
+    float m_GroundCheckDistance = 0.35f;
     [SerializeField]
     public GameObject m_AirPushPrefab;
+    [SerializeField]
     public GameObject DoubleJumpMask;
+    [SerializeField]
     public GameObject AirPushMask;
+    [SerializeField]
     public float m_timeScale;
+    [SerializeField]
     public GameObject DoubleJumpMaskHand;
+    [SerializeField]
     public GameObject AirPushMaskHand;
+    [SerializeField]
     public GameObject DoubleJumpMaskInventory;
+    [SerializeField]
     public GameObject AirPushMaskInventory;
+    [SerializeField]
+    public float climbSpeed = 1;
+    public Transform checkReachedTop;
 
     Rigidbody m_Rigidbody;
     Animator m_Animator;
@@ -45,10 +55,16 @@ public class MainCharacterController : MonoBehaviour {
     CapsuleCollider m_Capsule;
     GameObject[] groundChecks;
     bool m_airPushFired;
+    public bool wallClimb;
+    public Transform climbingWall;
     private bool m_doubleJumpMaskOn;
     private bool m_airPushMaskOn;
     private bool m_swapMasks;
     private bool m_maskAction;
+    private bool climbTopEvent;
+    private bool climbStateUp;
+    private bool climbStateForward;
+    private float climbTopSpeed = 1f;
 
     // Use this for initialization
     void Start () {
@@ -69,57 +85,76 @@ public class MainCharacterController : MonoBehaviour {
         Time.timeScale = m_timeScale;
     }
 
-    public void Move(Vector3 move, bool jump)
+    public void Move(float verticalInput, Vector3 move, bool jump)
     {
-        if (!m_airPushFired && !m_maskAction)
+        CheckGroundStatus();
+        m_Rigidbody.isKinematic = wallClimb && !m_IsGrounded;
+        if (!wallClimb || m_IsGrounded)
         {
-            if (move.magnitude > 1f) move.Normalize();
-            move = transform.InverseTransformDirection(move);
-            CheckGroundStatus();
-            move = Vector3.ProjectOnPlane(move, m_GroundNormal);
-            m_TurnAmount = Mathf.Atan2(move.x, move.z);
-            m_ForwardAmount = move.z;
-
-            ApplyExtraTurnRotation();
-
-            if (move.magnitude > 0f)
+            if (!m_airPushFired && !m_maskAction)
             {
-                m_Rigidbody.velocity = new Vector3(transform.forward.x * m_MoveSpeedMultiplier * move.magnitude, m_Rigidbody.velocity.y, transform.forward.z * m_MoveSpeedMultiplier * move.magnitude);
-                m_Animator.SetBool("Running", true);
+                if (move.magnitude > 1f) move.Normalize();
+                move = transform.InverseTransformDirection(move);
+                move = Vector3.ProjectOnPlane(move, m_GroundNormal);
+                m_TurnAmount = Mathf.Atan2(move.x, move.z);
+                m_ForwardAmount = move.z;
+
+                ApplyExtraTurnRotation();
+
+                if (move.magnitude > 0f)
+                {
+                    m_Rigidbody.velocity = new Vector3(transform.forward.x * m_MoveSpeedMultiplier * move.magnitude, m_Rigidbody.velocity.y, transform.forward.z * m_MoveSpeedMultiplier * move.magnitude);
+                    m_Animator.SetBool("Running", true);
+                }
+                else
+                {
+                    m_Rigidbody.velocity = new Vector3(0, m_Rigidbody.velocity.y, 0);
+                    m_Animator.SetBool("Running", false);
+                }
+
+                // check whether conditions are right to allow a jump:
+                if (m_IsGrounded && jump)
+                {
+                    // jump!
+                    m_Rigidbody.velocity = new Vector3(m_Rigidbody.velocity.x, m_JumpPower, m_Rigidbody.velocity.z);
+                    m_IsGrounded = false;
+                }
+                else
+                    if (jump && m_doubleJumpMaskOn && m_DoubleJump && !m_IsGrounded)
+                {
+                    m_Rigidbody.velocity = new Vector3(m_Rigidbody.velocity.x, m_JumpPower, m_Rigidbody.velocity.z);
+                    m_DoubleJump = false;
+                    m_Animator.SetBool("DoubleJump", true);
+                }
+
+                HandleAirborneMovement();
             }
             else
             {
-                m_Rigidbody.velocity = new Vector3(0, m_Rigidbody.velocity.y, 0);
-                m_Animator.SetBool("Running", false);
+                m_Rigidbody.velocity = new Vector3(0, 0, 0);
+                if (move.magnitude > 0f)
+                    m_Animator.SetBool("Running", true);
+                else
+                    m_Animator.SetBool("Running", false);
             }
-
-            // check whether conditions are right to allow a jump:
-            if (m_IsGrounded && jump)
-            {
-                // jump!
-                m_Rigidbody.velocity = new Vector3(m_Rigidbody.velocity.x, m_JumpPower, m_Rigidbody.velocity.z);
-                m_IsGrounded = false;
-                m_GroundCheckDistance = 0.1f;
-            }
-            else
-                if (jump && m_doubleJumpMaskOn && m_DoubleJump && !m_IsGrounded)
-            {
-                m_Rigidbody.velocity = new Vector3(m_Rigidbody.velocity.x, m_JumpPower, m_Rigidbody.velocity.z);
-                m_DoubleJump = false;
-                m_GroundCheckDistance = 0.1f;
-                m_Animator.SetBool("DoubleJump", true);
-            }
-
-            HandleAirborneMovement();
         }
         else
         {
-            m_Rigidbody.velocity = new Vector3(0, 0, 0);
-            if (move.magnitude > 0f)
-                m_Animator.SetBool("Running", true);
-            else
-                m_Animator.SetBool("Running", false);
+            HandleVerticalInput(verticalInput);
+            m_Animator.SetBool("Running", false);
+            if (climbingWall != null)
+            {
+                if (transform.rotation != Quaternion.Euler(new Vector3(0, climbingWall.rotation.eulerAngles.y + 90, 0)))
+                transform.rotation = Quaternion.Euler(new Vector3(0, climbingWall.rotation.eulerAngles.y + 90, 0));
+            }
         }
+
+        if (climbStateUp)
+        {
+            m_Rigidbody.MovePosition(new Vector3(m_Rigidbody.position.x, m_Rigidbody.position.y + climbTopSpeed * Time.deltaTime, m_Rigidbody.position.z));
+        }
+
+        m_Animator.SetBool("Climbing", climbingWall);
     }
 
     void CheckGroundStatus()
@@ -132,11 +167,11 @@ public class MainCharacterController : MonoBehaviour {
                 RaycastHit hitInfo;
 #if UNITY_EDITOR
                 // helper to visualise the ground check ray in the scene view
-                Debug.DrawLine(groundCheck.transform.position + (Vector3.up * 0.05f), groundCheck.transform.position + (Vector3.up * 0.05f) + (Vector3.down * m_GroundCheckDistance));
+                Debug.DrawLine(groundCheck.transform.position + (Vector3.up * 0.2f), groundCheck.transform.position + (Vector3.up * 0.2f) + (Vector3.down * m_GroundCheckDistance));
 #endif
                 // 0.1f is a small offset to start the ray from inside the character
                 // it is also good to note that the transform position in the sample assets is at the base of the character
-                if (Physics.Raycast(groundCheck.transform.position + (Vector3.up * 0.05f), Vector3.down, out hitInfo, m_GroundCheckDistance, layer_mask))
+                if (Physics.Raycast(groundCheck.transform.position + (Vector3.up * 0.2f), Vector3.down, out hitInfo, m_GroundCheckDistance, layer_mask))
                 {
                     m_GroundNormal = hitInfo.normal;
                     m_IsGrounded = true;
@@ -236,7 +271,7 @@ public class MainCharacterController : MonoBehaviour {
 
     void HandleAirAnimation()
     {
-        if (m_Rigidbody.velocity.y > 0)
+        if (m_Rigidbody.velocity.y > 0.1f)
         {
             m_Animator.SetBool("Ascending", true);
             m_Animator.SetBool("Descending", false);
@@ -301,5 +336,21 @@ public class MainCharacterController : MonoBehaviour {
         m_Animator.SetBool("MaskOff", false);
         m_Animator.SetBool("MaskSwap", false);
     }
+    private void HandleVerticalInput(float input)
+    {
+        if (!climbTopEvent)
+        {
+            float velocityInput = input > 0 ? climbSpeed : input < 0 ? -climbSpeed : 0;
+            float climbingAnim = input > 0 ? 1 : input < 0 ? -1 : 0;
+            m_Animator.SetFloat("climbingDirection", climbingAnim);
 
+            m_Rigidbody.MovePosition(new Vector3(m_Rigidbody.position.x, m_Rigidbody.position.y + input * Time.deltaTime, m_Rigidbody.position.z));
+        }
+        if (checkReachedTop.position.y >= climbingWall.GetChild(0).transform.position.y && !climbTopEvent)
+        {
+            climbTopEvent = true;
+            climbStateUp = true;
+            m_Animator.SetBool("ClimbEvent", true);
+        }
+    }
 }

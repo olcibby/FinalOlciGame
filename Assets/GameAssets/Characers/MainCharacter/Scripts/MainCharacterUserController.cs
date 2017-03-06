@@ -71,7 +71,7 @@ public class MainCharacterUserController : MonoBehaviour {
 
 
         // pass all parameters to the character control script
-        m_Character.Move(m_Move, m_Jump);
+        m_Character.Move(v, m_Move, m_Jump);
         m_Jump = false;
     }
 

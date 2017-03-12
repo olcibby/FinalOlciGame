@@ -61,10 +61,10 @@ public class MainCharacterController : MonoBehaviour {
     private bool m_airPushMaskOn;
     private bool m_swapMasks;
     private bool m_maskAction;
-    private bool climbTopEvent;
+    public bool climbTopEvent;
     private bool climbStateUp;
     private bool climbStateForward;
-    private float climbTopSpeed = 1f;
+    private float climbTopSpeed = 2.3f;
 
     // Use this for initialization
     void Start () {
@@ -88,8 +88,8 @@ public class MainCharacterController : MonoBehaviour {
     public void Move(float verticalInput, Vector3 move, bool jump)
     {
         CheckGroundStatus();
-        m_Rigidbody.isKinematic = wallClimb && !m_IsGrounded;
-        if (!wallClimb || m_IsGrounded)
+        m_Rigidbody.isKinematic = wallClimb && !m_IsGrounded || climbTopEvent;
+        if ((!wallClimb || m_IsGrounded) && !climbTopEvent)
         {
             if (!m_airPushFired && !m_maskAction)
             {
@@ -149,9 +149,14 @@ public class MainCharacterController : MonoBehaviour {
             }
         }
 
-        if (climbStateUp)
+        if (climbStateUp && climbTopEvent)
         {
             m_Rigidbody.MovePosition(new Vector3(m_Rigidbody.position.x, m_Rigidbody.position.y + climbTopSpeed * Time.deltaTime, m_Rigidbody.position.z));
+        }
+
+        if (climbStateForward && climbTopEvent)
+        {
+            m_Rigidbody.MovePosition(new Vector3(m_Rigidbody.position.x + transform.forward.x * Time.deltaTime * climbTopSpeed/2, m_Rigidbody.position.y, m_Rigidbody.position.z + transform.forward.z * Time.deltaTime * climbTopSpeed/2));
         }
 
         m_Animator.SetBool("Climbing", climbingWall);
@@ -346,11 +351,28 @@ public class MainCharacterController : MonoBehaviour {
 
             m_Rigidbody.MovePosition(new Vector3(m_Rigidbody.position.x, m_Rigidbody.position.y + input * Time.deltaTime, m_Rigidbody.position.z));
         }
-        if (checkReachedTop.position.y >= climbingWall.GetChild(0).transform.position.y && !climbTopEvent)
+        if (climbingWall != null)
         {
-            climbTopEvent = true;
-            climbStateUp = true;
-            m_Animator.SetBool("ClimbEvent", true);
+            if (checkReachedTop.position.y >= climbingWall.GetChild(0).transform.position.y && !climbTopEvent)
+            {
+                climbTopEvent = true;
+                climbStateUp = true;
+                m_Animator.SetBool("ClimbEvent", true);
+            }
         }
+    }
+
+    public void ClimbGoForward()
+    {
+        climbStateForward = true;
+    }
+
+    public void ClimbEnd()
+    {
+        climbStateForward = false;
+        climbStateUp = false;
+        wallClimb = false;
+        climbTopEvent = false;
+        m_Animator.SetBool("ClimbEvent", false);
     }
 }

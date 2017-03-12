@@ -28,7 +28,7 @@ public class WallClimbController : MonoBehaviour {
     {
         if (other.tag == "WallClimb")
         {
-            mainCharController.wallClimb = false;
+            mainCharController.wallClimb = mainCharController.climbTopEvent;
             mainCharController.climbingWall = null;
         }
     }

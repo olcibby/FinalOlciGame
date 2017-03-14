@@ -9,6 +9,7 @@ public class MainCharacterUserController : MonoBehaviour {
     private Vector3 m_CamForward;             // The current forward direction of the camera
     private Vector3 m_Move;
     private bool m_Jump;                      // the world-relative desired move direction, calculated from the camForward and user input.
+    private SeasonController m_SeasonController;
 
     // Use this for initialization
     void Start () {
@@ -26,6 +27,7 @@ public class MainCharacterUserController : MonoBehaviour {
 
         // get the third person character ( this should never be null due to require component )
         m_Character = GetComponent<MainCharacterController>();
+        m_SeasonController = GetComponent<SeasonController>();
     }
 	
 	// Update is called once per frame
@@ -45,6 +47,10 @@ public class MainCharacterUserController : MonoBehaviour {
         if (Input.GetKeyDown(KeyCode.Alpha2))
         {
             m_Character.ToggleAirPushMaskOn();
+        }
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            m_SeasonController.ToggleSeason();
         }
     }
 

@@ -28,6 +28,8 @@ public class SeasonController : MonoBehaviour {
                 obj.GetComponent<Renderer>().enabled = isSummer;
             if (obj.GetComponent<Collider>() != null)
                 obj.GetComponent<Collider>().enabled = isSummer;
+            if (obj.GetComponent<Light>() != null)
+                obj.GetComponent<Light>().enabled = isSummer;
         }
 
         foreach (var obj in winterObjects)
@@ -36,6 +38,8 @@ public class SeasonController : MonoBehaviour {
                 obj.GetComponent<Renderer>().enabled = !isSummer;
             if (obj.GetComponent<Collider>() != null)
                 obj.GetComponent<Collider>().enabled = !isSummer;
+            if (obj.GetComponent<Light>() != null)
+                obj.GetComponent<Light>().enabled = !isSummer;
         }
     }
 }

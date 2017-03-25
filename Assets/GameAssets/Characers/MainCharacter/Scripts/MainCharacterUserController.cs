@@ -40,15 +40,15 @@ public class MainCharacterUserController : MonoBehaviour {
         {
             m_Character.AirPushAction();
         }
-        if (Input.GetKeyDown(KeyCode.Alpha1))
+        if (Input.GetKeyDown(KeyCode.Alpha1) && GameController.mask1Collected)
         {
             m_Character.ToggleDoubleJumpOn();
         }
-        if (Input.GetKeyDown(KeyCode.Alpha2))
+        if (Input.GetKeyDown(KeyCode.Alpha2) && GameController.mask2Collected)
         {
             m_Character.ToggleAirPushMaskOn();
         }
-        if (Input.GetKeyDown(KeyCode.Q))
+        if (Input.GetKeyDown(KeyCode.Q) && GameController.dialCollected)
         {
             m_SeasonController.ToggleSeason();
         }

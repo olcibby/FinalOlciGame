@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class SeasonController : MonoBehaviour {
 
-    public bool isSummer = true;
+    public bool isSummer = false;
 
 	// Use this for initialization
 	void Start () {
@@ -21,6 +21,7 @@ public class SeasonController : MonoBehaviour {
         isSummer = !isSummer;
         var summerObjects = GameObject.FindGameObjectsWithTag("Summer");
         var winterObjects = GameObject.FindGameObjectsWithTag("Winter");
+        var wallColliders = GameObject.FindGameObjectsWithTag("WallClimb");
 
         foreach (var obj in summerObjects)
         {
@@ -40,6 +41,12 @@ public class SeasonController : MonoBehaviour {
                 obj.GetComponent<Collider>().enabled = !isSummer;
             if (obj.GetComponent<Light>() != null)
                 obj.GetComponent<Light>().enabled = !isSummer;
+        }
+
+        foreach (var obj in wallColliders)
+        {
+            if (obj.GetComponent<Collider>() != null)
+                obj.GetComponent<Collider>().enabled = isSummer;
         }
     }
 }

@@ -66,6 +66,9 @@ public class MainCharacterController : MonoBehaviour {
     private bool climbStateForward;
     private float climbTopSpeed = 2.3f;
 
+    private bool displayMask1InInventory = true;
+    private bool displayMask2InInventory = true;
+
     // Use this for initialization
     void Start () {
         m_Rigidbody = GetComponent<Rigidbody>();
@@ -158,6 +161,9 @@ public class MainCharacterController : MonoBehaviour {
         {
             m_Rigidbody.MovePosition(new Vector3(m_Rigidbody.position.x + transform.forward.x * Time.deltaTime * climbTopSpeed/2, m_Rigidbody.position.y, m_Rigidbody.position.z + transform.forward.z * Time.deltaTime * climbTopSpeed/2));
         }
+
+        DoubleJumpMaskInventory.SetActive(displayMask1InInventory && GameController.mask1Collected);
+        AirPushMaskInventory.SetActive(displayMask2InInventory && GameController.mask2Collected);
 
         m_Animator.SetBool("Climbing", climbingWall);
     }
@@ -293,8 +299,11 @@ public class MainCharacterController : MonoBehaviour {
         DoubleJumpMaskHand.SetActive(m_doubleJumpMaskOn);
         AirPushMaskHand.SetActive(m_airPushMaskOn);
 
-        DoubleJumpMaskInventory.SetActive(!m_doubleJumpMaskOn);
-        AirPushMaskInventory.SetActive(!m_airPushMaskOn);
+        displayMask1InInventory = !m_doubleJumpMaskOn;
+        displayMask2InInventory = !m_airPushMaskOn;
+
+        DoubleJumpMaskInventory.SetActive(!m_doubleJumpMaskOn && GameController.mask1Collected);
+        AirPushMaskInventory.SetActive(!m_airPushMaskOn && GameController.mask2Collected);
     }
     public void PlaceMaskOn()
     {
@@ -314,16 +323,22 @@ public class MainCharacterController : MonoBehaviour {
     }
     public void SwapMasks()
     {
-        DoubleJumpMaskInventory.SetActive(!m_doubleJumpMaskOn);
-        AirPushMaskInventory.SetActive(!m_airPushMaskOn);
+        DoubleJumpMaskInventory.SetActive(!m_doubleJumpMaskOn && GameController.mask1Collected);
+        AirPushMaskInventory.SetActive(!m_airPushMaskOn && GameController.mask2Collected);
+
+        displayMask1InInventory = !m_doubleJumpMaskOn;
+        displayMask2InInventory = !m_airPushMaskOn;
 
         DoubleJumpMaskHand.SetActive(m_doubleJumpMaskOn);
         AirPushMaskHand.SetActive(m_airPushMaskOn);
     }
     public void PlaceMask()
     {
-        DoubleJumpMaskInventory.SetActive(true);
-        AirPushMaskInventory.SetActive(true);
+        DoubleJumpMaskInventory.SetActive(GameController.mask1Collected);
+        AirPushMaskInventory.SetActive(GameController.mask2Collected);
+
+        displayMask1InInventory = GameController.mask1Collected;
+        displayMask2InInventory = GameController.mask2Collected;
 
         DoubleJumpMaskHand.SetActive(false);
         AirPushMaskHand.SetActive(false);

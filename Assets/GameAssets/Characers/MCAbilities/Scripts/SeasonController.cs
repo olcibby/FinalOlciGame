@@ -19,6 +19,7 @@ public class SeasonController : MonoBehaviour {
     public void ToggleSeason()
     {
         isSummer = !isSummer;
+        GameController.isSummer = isSummer;
         var summerObjects = GameObject.FindGameObjectsWithTag("Summer");
         var winterObjects = GameObject.FindGameObjectsWithTag("Winter");
         var wallColliders = GameObject.FindGameObjectsWithTag("WallClimb");

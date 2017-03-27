@@ -165,6 +165,9 @@ public class MainCharacterController : MonoBehaviour {
         DoubleJumpMaskInventory.SetActive(displayMask1InInventory && GameController.mask1Collected);
         AirPushMaskInventory.SetActive(displayMask2InInventory && GameController.mask2Collected);
 
+        GameController.mask1Equipped = m_doubleJumpMaskOn;
+        GameController.mask2Equipped = m_airPushMaskOn;
+
         m_Animator.SetBool("Climbing", climbingWall);
     }
 
